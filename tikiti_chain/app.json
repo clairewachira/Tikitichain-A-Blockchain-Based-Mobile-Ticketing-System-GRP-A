@@ -7,7 +7,6 @@
     "icon": "./assets/images/icon.png",
     "scheme": "tikitichain",
     "userInterfaceStyle": "automatic",
-    "jsEngine": "hermes",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
@@ -39,7 +38,7 @@
       "expo-font"
     ],
     "experiments": {
-      "typedRoutes": false
+      "typedRoutes": true
     }
   }
 }
