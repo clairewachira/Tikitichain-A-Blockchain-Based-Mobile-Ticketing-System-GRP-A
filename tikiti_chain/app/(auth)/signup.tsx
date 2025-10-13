@@ -2,6 +2,7 @@ import ContainerIcon from "@/components/ui/ContainerIcon";
 import { Text } from "@/components/ui/Text";
 import { colors } from "@/constants/colors";
 import { useSafeRouter } from "@/hooks/navigation/router";
+import { useSignUpWithEmail } from "@/hooks/user/authHooks";
 import { cn } from "@/utils/cn";
 import { hexToRgba } from "@/utils/functions";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
@@ -14,10 +15,9 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ScrollView,
 } from "react-native";
-import { ScrollView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Toast from "react-native-toast-message";
 
 type RegistrationData = {
   emailAddress: string;
@@ -32,9 +32,9 @@ type FormErrors = {
 
 export default function SignInFlow() {
   const [currentStep, setCurrentStep] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const { signUpWithEmail, isSigningUpWithEmail } = useSignUpWithEmail();
 
   const router = useSafeRouter();
 
@@ -94,27 +94,11 @@ export default function SignInFlow() {
   const handleRegister = async () => {
     if (!validateStep(3)) return;
 
-    setIsLoading(true);
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Mock successful response
-      Toast.show({
-        type: "success",
-        text1: "Registration Successful! 🎉",
-        text2: "Please check your email to verify your account.",
-      });
-      router.replace("/(tabs)");
-    } catch (error) {
-      Toast.show({
-        type: "error",
-        text1: "Registration failed.",
-        text2: "Please try again.",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    signUpWithEmail({
+      email: formData.emailAddress,
+      password: formData.password,
+      username: formData.userName,
+    });
   };
 
   const updateFormData = (field: keyof RegistrationData, value: string) => {
@@ -334,7 +318,7 @@ export default function SignInFlow() {
               <TouchableOpacity
                 className="flex-1 bg-primary-white py-4 rounded-full"
                 onPress={prevStep}
-                disabled={isLoading}
+                disabled={isSigningUpWithEmail}
               >
                 <Text
                   variant="interSemiBold"
@@ -348,11 +332,11 @@ export default function SignInFlow() {
             <TouchableOpacity
               className={cn(currentStep > 1 ? "flex-1" : "flex-1")}
               onPress={currentStep === 3 ? handleRegister : nextStep}
-              disabled={isLoading}
+              disabled={isSigningUpWithEmail}
             >
               <LinearGradient
                 colors={
-                  !isLoading
+                  !isSigningUpWithEmail
                     ? [colors.primary.black, colors.primary.black]
                     : [
                         hexToRgba(colors.primary.black, 0.8),
@@ -363,7 +347,7 @@ export default function SignInFlow() {
                 end={{ x: 1, y: 1 }}
                 style={{ paddingVertical: 16, borderRadius: 30 }}
               >
-                {isLoading ? (
+                {isSigningUpWithEmail ? (
                   <View className="flex-row items-center justify-center">
                     <MaterialIcons
                       name="hourglass-empty"
