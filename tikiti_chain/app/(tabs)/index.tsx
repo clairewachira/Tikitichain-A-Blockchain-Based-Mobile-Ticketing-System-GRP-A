@@ -6,13 +6,12 @@ import SearchBar from "@/components/ui/SearchBar";
 import Section from "@/components/ui/Section";
 import { colors } from "@/constants/colors";
 import {
-  Dimensions,
   Keyboard,
   StatusBar,
   TouchableOpacity,
   View,
+  ScrollView,
 } from "react-native";
-import { ScrollView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FlashList } from "@shopify/flash-list";
 import { useIsKeyboardShown } from "@/hooks/general/keyboard";
@@ -23,7 +22,6 @@ import { Text } from "@/components/ui/Text";
 import CustomBottomSheetModal from "@/components/ui/BottomSheet";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import Slider from "@react-native-community/slider";
-const { width } = Dimensions.get("screen");
 
 // Mock data for search results
 const mockEvents = [

@@ -20,6 +20,49 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import Toast from "react-native-toast-message";
 import toastConfig from "@/components/ui/Toast";
+import { useAuthContext } from "@/hooks/auth/use-auth-context";
+import AuthProvider from "@/providers/auth-provider";
+import { AppState } from "react-native";
+import { supabase } from "@/utils/supabase";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+
+// Tells Supabase Auth to continuously refresh the session automatically
+AppState.addEventListener("change", (state) => {
+  if (state === "active") {
+    supabase.auth.startAutoRefresh();
+  } else {
+    supabase.auth.stopAutoRefresh();
+  }
+});
+
+function RootLayoutNav() {
+  const queryClient = new QueryClient();
+  const { isLoggedIn } = useAuthContext();
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <BottomSheetModalProvider>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Protected guard={!isLoggedIn}>
+                <Stack.Screen name="(auth)" />
+                <Stack.Screen name="index" />
+                <Stack.Screen name="interests" />
+              </Stack.Protected>
+              <Stack.Protected guard={isLoggedIn}>
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="events" />
+              </Stack.Protected>
+            </Stack>
+          </BottomSheetModalProvider>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+      <Toast config={toastConfig} swipeable autoHide />
+    </QueryClientProvider>
+  );
+}
 
 export default function Layout() {
   const [interLoaded] = useInter({
@@ -30,7 +73,6 @@ export default function Layout() {
     Inter_800ExtraBold,
     Inter_900Black,
   });
-
   const [passionOneLoaded] = usePassionOne({
     PassionOne_400Regular,
     PassionOne_700Bold,
@@ -46,18 +88,10 @@ export default function Layout() {
   if (!interLoaded || !passionOneLoaded) {
     return null;
   }
-  return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <BottomSheetModalProvider>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" />
-          <Stack.Screen name="interests" />
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="(auth)" />
-        </Stack>
-      </BottomSheetModalProvider>
 
-      <Toast config={toastConfig} />
-    </GestureHandlerRootView>
+  return (
+    <AuthProvider>
+      <RootLayoutNav />
+    </AuthProvider>
   );
 }

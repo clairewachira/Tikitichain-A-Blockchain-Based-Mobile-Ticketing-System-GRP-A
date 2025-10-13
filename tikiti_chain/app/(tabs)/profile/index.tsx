@@ -3,14 +3,23 @@ import ContainerIcon from "@/components/ui/ContainerIcon";
 import Section from "@/components/ui/Section";
 import { Text } from "@/components/ui/Text";
 import { colors } from "@/constants/colors";
+import { useAuthContext } from "@/hooks/auth/use-auth-context";
+import { useLogout } from "@/hooks/user/authHooks";
 import { hexToRgba } from "@/utils/functions";
 import { FlashList } from "@shopify/flash-list";
 import { LinearGradient } from "expo-linear-gradient";
-import { Image, StatusBar, TouchableOpacity, View } from "react-native";
-import { ScrollView } from "react-native-gesture-handler";
+import {
+  Image,
+  StatusBar,
+  TouchableOpacity,
+  View,
+  ScrollView,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Profile() {
+  const { profile } = useAuthContext();
+  const { logOut, isLoggingOut } = useLogout();
   const eventTypes: {
     label: string;
   }[] = [
@@ -19,6 +28,8 @@ export default function Profile() {
     { label: "books" },
     { label: "music" },
   ];
+
+  if (isLoggingOut) return <Text variant="interBold">Loading...</Text>;
   return (
     <SafeAreaView className="flex-1 bg-primary-white pt-4 gap-6">
       <StatusBar
@@ -33,11 +44,11 @@ export default function Profile() {
             }}
             className="w-24 h-24 rounded-full"
           />
-          <View className="">
+          <View className="flex-1">
             <Text variant="interExtraBold" className="text-2xl">
-              Claire Wachira
+              {profile?.full_name ?? "Claire Wachira"}
             </Text>
-            <Text variant="interMedium">claire@gmail.com</Text>
+            <Text variant="interMedium">{profile?.email}</Text>
             <View className="flex-row items-center gap-1">
               <ContainerIcon
                 icon="map-marker-outline"
@@ -48,6 +59,14 @@ export default function Profile() {
               <Text variant="caption">Nairobi, Kenya</Text>
             </View>
           </View>
+          <ContainerIcon
+            icon="log-out-outline"
+            iconType="Ionicons"
+            className="p-3"
+            iconSize={30}
+            iconColor={colors.secondary.red}
+            handleClick={logOut}
+          />
         </View>
         <ScrollView
           horizontal

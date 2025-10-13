@@ -6,13 +6,12 @@ import Section from "@/components/ui/Section";
 import { Text } from "@/components/ui/Text";
 import { colors } from "@/constants/colors";
 import { useSafeRouter } from "@/hooks/navigation/router";
-import { StatusBar, View, TouchableOpacity } from "react-native";
+import { StatusBar, View, TouchableOpacity, ScrollView } from "react-native";
 import {
-  SafeAreaView,
   useSafeAreaInsets,
+  SafeAreaView,
 } from "react-native-safe-area-context";
 import { useState } from "react";
-import { ScrollView } from "react-native-gesture-handler";
 
 type EventType = {
   leading: ContainerIconProps["icon"];

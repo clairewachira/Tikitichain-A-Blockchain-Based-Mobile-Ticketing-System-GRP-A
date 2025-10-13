@@ -4,13 +4,11 @@ import ContainerIcon, {
   ContainerIconProps,
 } from "@/components/ui/ContainerIcon";
 import SearchBar from "@/components/ui/SearchBar";
-import { Text } from "@/components/ui/Text";
 import { colors } from "@/constants/colors";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useRef, useState } from "react";
-import { StyleSheet, View } from "react-native";
-import { ScrollView } from "react-native-gesture-handler";
+import { StyleSheet, View, ScrollView } from "react-native";
 import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
 
 export default function Map() {
