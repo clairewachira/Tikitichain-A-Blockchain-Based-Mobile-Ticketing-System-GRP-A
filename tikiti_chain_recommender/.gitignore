@@ -1,0 +1,7 @@
+test_cleaned.csv
+train_cleaned.csv
+ 
+.venv/
+data/
+*.pkl
+*.h5
