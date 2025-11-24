@@ -10,15 +10,17 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { FlashList } from "@shopify/flash-list";
 import { useRef } from "react";
-import { StatusBar, TouchableOpacity, View } from "react-native";
+import { StatusBar, TouchableOpacity, View, ActivityIndicator } from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { useFavouriteEvents } from "@/hooks/events/useFavourites";
 
 export default function Favourites() {
   const insets = useSafeAreaInsets();
   const sortSheetRef = useRef<BottomSheetModal>(null);
+  const { data: favouriteEvents = [], isLoading } = useFavouriteEvents();
   const sortItem: {
     icon: ContainerIconProps["icon"];
     label: string;
@@ -72,19 +74,44 @@ export default function Favourites() {
           />
         </TouchableOpacity>
       </View>
-      <FlashList
-        estimatedItemSize={3}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 72 }}
-        data={[1, 2, 3]}
-        renderItem={({ item }) => (
-          <EventCard
-            className="rounded-3xl w-full mb-4"
-            imageClassName="rounded-3xl"
-            imageHeight={240}
-          />
-        )}
-      />
+      {isLoading ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color={colors.primary.black} />
+        </View>
+      ) : (
+        <FlashList
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: insets.bottom + 72 }}
+          data={favouriteEvents}
+          estimatedItemSize={240}
+          renderItem={({ item }) => (
+            <EventCard
+              className="rounded-3xl w-full mb-4"
+              imageClassName="rounded-3xl"
+              imageHeight={240}
+              event={item}
+              type="description"
+            />
+          )}
+          ListEmptyComponent={
+            <View className="flex-1 items-center justify-center mt-20">
+              <ContainerIcon
+                icon="heart-outline"
+                iconType="Ionicons"
+                iconSize={64}
+                iconColor={colors.primary.dark_gray}
+                interactive={false}
+              />
+              <Text variant="interBold" className="text-xl mt-4 text-primary-dark_gray">
+                No favourites yet
+              </Text>
+              <Text variant="interMedium" className="text-sm mt-2 text-primary-dark_gray text-center px-8">
+                Start adding events to your favourites to see them here
+              </Text>
+            </View>
+          }
+        />
+      )}
       <CustomBottomSheetModal
         ref={sortSheetRef}
         title="Sort by"

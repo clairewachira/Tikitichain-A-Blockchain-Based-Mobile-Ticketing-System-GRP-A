@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FlashList } from "@shopify/flash-list";
@@ -22,54 +23,11 @@ import { Text } from "@/components/ui/Text";
 import CustomBottomSheetModal from "@/components/ui/BottomSheet";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import Slider from "@react-native-community/slider";
-
-// Mock data for search results
-const mockEvents = [
-  {
-    id: 1,
-    title: "Graphic Design Beyond Boundaries",
-    location: "at. Antonycha, 50, Kyiv",
-    date: "Dec. 7",
-    price: "700 UAH",
-    rating: "9.6",
-    image:
-      "https://images.pexels.com/photos/196645/pexels-photo-196645.jpeg?auto=compress&cs=tinysrgb&w=800",
-    category: "visual arts",
-  },
-  {
-    id: 2,
-    title: "Design Perspectives: Exploring the Future of Aesthetics",
-    location: "Creative Hub, Kyiv",
-    date: "Dec. 7",
-    price: "900 UAH",
-    rating: "9.2",
-    image:
-      "https://images.pexels.com/photos/1260309/pexels-photo-1260309.jpeg?auto=compress&cs=tinysrgb&w=800",
-    category: "visual arts",
-  },
-  {
-    id: 3,
-    title: "UX/UI Design Workshop",
-    location: "Tech Center, Kyiv",
-    date: "Dec. 8",
-    price: "1200 UAH",
-    rating: "9.8",
-    image:
-      "https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg?auto=compress&cs=tinysrgb&w=800",
-    category: "education",
-  },
-  {
-    id: 4,
-    title: "Digital Design Masterclass",
-    location: "Design Studio, Kyiv",
-    date: "Dec. 9",
-    price: "850 UAH",
-    rating: "9.4",
-    image:
-      "https://images.pexels.com/photos/326503/pexels-photo-326503.jpeg?auto=compress&cs=tinysrgb&w=800",
-    category: "visual arts",
-  },
-];
+import { useSafeRouter } from "@/hooks/navigation/router";
+import { useEvents } from "@/hooks/events/useEvents";
+import { getEventsThisMonth } from "@/utils/events";
+import Loader from "@/components/ui/Loader";
+import { useRecommendations } from "@/hooks/recommendation/useRecommendations";
 
 export default function Index() {
   const [searchText, setSearchText] = useState("");
@@ -81,9 +39,16 @@ export default function Index() {
   ]);
   const [showHistory, setShowHistory] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState(mockEvents);
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+  const { data: events, isLoading: isFetchingEvents } = useEvents();
+  const [searchResults, setSearchResults] = useState(events);
 
+  // Fetch recommendations for the logged-in user
+  const { data: recommendationsData, isLoading: isLoadingRecommendations } = useRecommendations({
+    limit: 10,
+  });
+
+  const router = useSafeRouter();
   const sortSheetRef = useRef<BottomSheetModal>(null);
   const filterSheetRef = useRef<BottomSheetModal>(null);
   const keyboardShown = useIsKeyboardShown();
@@ -94,26 +59,69 @@ export default function Index() {
     label: string;
   }[] = [
     {
-      leading: "book-open-page-variant-outline",
-      iconType: "MaterialCommunityIcons",
-      label: "Book Launches",
-    },
-    { leading: "camera-outline", iconType: "Ionicons", label: "Photography" },
-    {
-      leading: "school-outline",
+      leading: "laptop",
       iconType: "Ionicons",
-      label: "History Lectures",
-    },
-    { leading: "brush", iconType: "Ionicons", label: "Art Exhibitions" },
-    {
-      leading: "volume-medium-outline",
-      iconType: "Ionicons",
-      label: "Music",
+      label: "Technology",
     },
     {
-      leading: "basketball-outline",
+      leading: "musical-notes",
       iconType: "Ionicons",
-      label: "Basketball Tournaments",
+      label: "Music"
+    },
+    {
+      leading: "fitness",
+      iconType: "Ionicons",
+      label: "Sports & Fitness",
+    },
+    {
+      leading: "color-palette",
+      iconType: "Ionicons",
+      label: "Arts & Culture"
+    },
+    {
+      leading: "briefcase",
+      iconType: "Ionicons",
+      label: "Business & Professional",
+    },
+    {
+      leading: "restaurant",
+      iconType: "Ionicons",
+      label: "Food & Drink",
+    },
+    {
+      leading: "game-controller",
+      iconType: "Ionicons",
+      label: "Entertainment",
+    },
+    {
+      leading: "heart",
+      iconType: "Ionicons",
+      label: "Health & Wellness",
+    },
+    {
+      leading: "school",
+      iconType: "Ionicons",
+      label: "Education & Learning",
+    },
+    {
+      leading: "people",
+      iconType: "Ionicons",
+      label: "Family & Kids",
+    },
+    {
+      leading: "cart",
+      iconType: "Ionicons",
+      label: "Shopping & Markets",
+    },
+    {
+      leading: "shirt",
+      iconType: "Ionicons",
+      label: "Fashion & Beauty",
+    },
+    {
+      leading: "ribbon",
+      iconType: "Ionicons",
+      label: "Community & Charity",
     },
   ];
   const sortItem: {
@@ -171,7 +179,7 @@ export default function Index() {
     setShowHistory(false);
 
     // Mock search filtering
-    const filtered = mockEvents.filter(
+    const filtered = events?.filter(
       (event) =>
         event.title.toLowerCase().includes(searchText.toLowerCase()) ||
         event.category.toLowerCase().includes(searchText.toLowerCase()),
@@ -190,25 +198,20 @@ export default function Index() {
 
   const handleFilterPress = (filter: string) => {
     if (selectedFilter === filter) {
+      // Deselect filter
       setSelectedFilter(null);
-      setSearchResults(
-        mockEvents.filter(
-          (event) =>
-            event.title.toLowerCase().includes(searchText.toLowerCase()) ||
-            event.category.toLowerCase().includes(searchText.toLowerCase()),
-        ),
-      );
     } else {
+      // Select new filter
       setSelectedFilter(filter);
-      const filtered = mockEvents.filter((event) => {
-        const matchesSearch =
-          event.title.toLowerCase().includes(searchText.toLowerCase()) ||
-          event.category.toLowerCase().includes(searchText.toLowerCase());
-        const matchesFilter = event.category === filter;
-        return matchesSearch && matchesFilter;
-      });
-      setSearchResults(filtered);
     }
+  };
+
+  // Get filtered events based on selected category
+  const getFilteredEvents = () => {
+    if (!selectedFilter) {
+      return events ?? [];
+    }
+    return events?.filter((event) => event.category === selectedFilter) ?? [];
   };
 
   const handleBackToSearch = () => {
@@ -218,6 +221,7 @@ export default function Index() {
     setShowHistory(false);
   };
 
+  if (isFetchingEvents) return <Loader />;
   return (
     <SafeAreaView className="flex-1 bg-primary-light_gray py-6 gap-6">
       <StatusBar
@@ -376,13 +380,12 @@ export default function Index() {
         >
           <View className="px-4 mb-4">
             <Text variant="subheading" className="text-lg font-interSemiBold">
-              Found {searchResults.length} events
+              Found {searchResults?.length} events
             </Text>
           </View>
 
           <FlashList
             data={searchResults}
-            estimatedItemSize={350}
             contentContainerClassName="px-4"
             showsVerticalScrollIndicator={false}
             renderItem={({ item }) => (
@@ -391,12 +394,7 @@ export default function Index() {
                   className="rounded-2xl w-full"
                   imageClassName="rounded-2xl"
                   imageHeight={250}
-                  //title={item.title}
-                  //location={item.location}
-                  //date={item.date}
-                  //price={item.price}
-                  //rating={item.rating}
-                  //image={item.image}
+                  event={item}
                 />
               </View>
             )}
@@ -417,36 +415,85 @@ export default function Index() {
           contentContainerClassName="w-full pb-6 gap-6"
           showsVerticalScrollIndicator={false}
         >
-          <Section label="Recommendations" gap={16}>
-            <FlashList
-              estimatedItemSize={3}
-              contentContainerClassName="gap-5 px-4"
-              showsHorizontalScrollIndicator={false}
-              horizontal
-              data={[1, 2, 3]}
-              renderItem={({ item }) => (
-                <EventCard
-                  className="rounded-2xl w-[330px] mr-4"
-                  imageClassName="rounded-2xl"
-                  imageHeight={300}
-                  type="description"
+          {!selectedFilter && (
+            <Section label="Recommendations" gap={16}>
+              {isLoadingRecommendations ? (
+                <View className="items-center justify-center py-8 ml-4">
+                  <ActivityIndicator size="large" color={colors.primary.black} />
+                </View>
+              ) : recommendationsData?.recommendations && recommendationsData.recommendations.length > 0 ? (
+                <FlashList
+                  contentContainerClassName="gap-5"
+                  showsHorizontalScrollIndicator={false}
+                  horizontal
+                  data={recommendationsData.recommendations.map(r => r.event)}
+                  renderItem={({ item }) => (
+                    <EventCard
+                      className="rounded-2xl w-[330px] mr-4"
+                      imageClassName="rounded-2xl"
+                      imageHeight={300}
+                      type="description"
+                      event={item}
+                    />
+                  )}
                 />
+              ) : (
+                <View className="items-center justify-center py-12 px-4 ml-4">
+                  <ContainerIcon
+                    icon="sparkles-outline"
+                    iconType="Ionicons"
+                    className="bg-gray-100 p-6 mb-4"
+                    iconColor={colors.primary.dark_gray}
+                    iconSize={48}
+                    interactive={false}
+                  />
+                  <Text variant="interBold" className="text-lg text-center mb-2">
+                    No Recommendations Yet
+                  </Text>
+                  <Text variant="interMedium" className="text-gray-500 text-center">
+                    We&apos;re learning your preferences!{"\n"}
+                    Browse events and we&apos;ll suggest personalized picks.
+                  </Text>
+                  <TouchableOpacity
+                    className="mt-4 bg-black py-3 px-6 rounded-full"
+                    onPress={() => router.push("/(tabs)/profile/preferences")}
+                  >
+                    <Text variant="interBold" className="text-white text-sm">
+                      Set Your Interests
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               )}
-            />
-          </Section>
-          <Section label="Today events" seeall gap={16}>
+            </Section>
+          )}
+          <Section
+            label={selectedFilter ? `${selectedFilter} Events` : "This month's events"}
+            seeall={!selectedFilter}
+            gap={16}
+            handleOnSeeAllPress={() => router.push("/events")}
+          >
             <FlashList
-              estimatedItemSize={3}
-              contentContainerClassName="gap-5 px-4"
+              contentContainerClassName="gap-5"
               horizontal
               showsHorizontalScrollIndicator={false}
-              data={[1, 2, 3]}
+              data={selectedFilter ? getFilteredEvents() : getEventsThisMonth(events ?? [])}
               renderItem={({ item }) => (
                 <EventCard
                   className="rounded-2xl w-[280px] mr-4"
                   imageHeight={200}
+                  event={item}
                 />
               )}
+              ListEmptyComponent={
+                <View className="items-center justify-center py-8">
+                  <Text className="text-gray-500 text-center">
+                    {selectedFilter
+                      ? `No ${selectedFilter} events found`
+                      : "No events happening this month"
+                    }
+                  </Text>
+                </View>
+              }
             />
           </Section>
         </ScrollView>

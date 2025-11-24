@@ -1,0 +1,33 @@
+{
+  "name": "tikiti-chain-contracts",
+  "version": "1.0.0",
+  "description": "Smart contracts for TikitiChain NFT ticketing",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "test:demo": "hardhat run test-contract.js --network hardhat",
+    "deploy:local": "hardhat run deploy.js --network hardhat",
+    "deploy:sepolia": "hardhat run deploy.js --network sepolia",
+    "deploy:mumbai": "hardhat run deploy.js --network mumbai",
+    "deploy:amoy": "hardhat run deploy.js --network amoy",
+    "deploy:polygon": "hardhat run deploy.js --network polygon",
+    "node": "hardhat node",
+    "balance": "hardhat run scripts/checkBalance.js --network localhost",
+    "balance:amoy": "hardhat run scripts/checkBalance.js --network amoy",
+    "balance:polygon": "hardhat run scripts/checkBalance.js --network polygon",
+    "deploy-and-update:local": "node scripts/deployAndUpdate.js localhost",
+    "deploy-and-update:amoy": "node scripts/deployAndUpdate.js amoy",
+    "deploy-and-update:polygon": "node scripts/deployAndUpdate.js polygon",
+    "update-config:amoy": "node scripts/updateAppConfig.js amoy",
+    "update-config:polygon": "node scripts/updateAppConfig.js polygon"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "dotenv": "^16.3.1",
+    "hardhat": "^2.19.0"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.9.6",
+    "react-native-worklets-core": "^1.6.2"
+  }
+}

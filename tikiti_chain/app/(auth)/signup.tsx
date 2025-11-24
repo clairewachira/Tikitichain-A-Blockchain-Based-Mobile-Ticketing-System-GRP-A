@@ -211,8 +211,8 @@ export default function SignInFlow() {
         showIcon: showConfirmPassword,
       })}
 
-      <View className="bg-blue-50 rounded-2xl p-4 mt-4">
-        <Text className="text-primary-blue text-sm font-medium mb-2">
+      <View className="bg-primary-light_gray rounded-2xl p-4 mt-4">
+        <Text className="text-primary-black text-sm font-medium mb-2">
           Password Requirements:
         </Text>
         <View className="space-y-1">

@@ -47,13 +47,21 @@ export default function AuthProvider({ children }: PropsWithChildren) {
       setIsLoading(true);
 
       if (session) {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from("profiles")
           .select("*")
           .eq("id", session.user.id)
           .single();
 
-        setProfile({ ...data, ...session.user });
+        if (error) {
+          console.error("Error fetching profile:", error);
+        }
+
+        console.log("Profile data from DB:", data);
+        // Merge session.user first, then data, so data.role takes precedence
+        const mergedProfile = { ...session.user, ...data };
+        console.log("Merged profile:", mergedProfile);
+        setProfile(mergedProfile);
       } else {
         setProfile(null);
       }

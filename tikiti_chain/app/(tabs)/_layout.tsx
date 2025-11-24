@@ -2,7 +2,7 @@ import "../../global.css";
 import { Tabs } from "expo-router";
 import CustomTab from "@/components/CustomTab";
 import { colors } from "@/constants/colors";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 export default function RootLayout() {
   return (
     <Tabs
@@ -46,6 +46,19 @@ export default function RootLayout() {
         }}
       />
       <Tabs.Screen
+        name="recommendations"
+        options={{
+          tabBarLabel: "Recommendations",
+          tabBarIcon: ({ focused }) => (
+            <MaterialCommunityIcons
+              name="star-four-points-outline"
+              size={24}
+              color={focused ? colors.primary.black : colors.primary.white}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="favourites"
         options={{
           tabBarLabel: "Favourites",
@@ -53,6 +66,21 @@ export default function RootLayout() {
             return (
               <Ionicons
                 name="heart-outline"
+                size={24}
+                color={focused ? colors.primary.black : colors.primary.white}
+              />
+            );
+          },
+        }}
+      />
+      <Tabs.Screen
+        name="wallet"
+        options={{
+          tabBarLabel: "Wallet",
+          tabBarIcon: ({ focused, color, size }) => {
+            return (
+              <Ionicons
+                name="wallet-outline"
                 size={24}
                 color={focused ? colors.primary.black : colors.primary.white}
               />
