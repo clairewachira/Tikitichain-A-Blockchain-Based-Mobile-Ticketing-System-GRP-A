@@ -11,12 +11,14 @@ export default function Section({
   children,
   className,
   seeall,
+  handleOnSeeAllPress,
   gap,
   padding = true,
 }: PropsWithChildren<{
   label: string;
   className?: string;
   seeall?: boolean;
+  handleOnSeeAllPress?: () => void;
   gap?: number;
   padding?: boolean;
 }>) {
@@ -45,6 +47,7 @@ export default function Section({
             }
             className="gap-1"
             textClassName="text-black"
+            onPress={handleOnSeeAllPress}
           />
         )}
       </View>

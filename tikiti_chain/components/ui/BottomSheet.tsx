@@ -37,7 +37,7 @@ export default function CustomBottomSheetModal({
   containerClassName,
   handleCloseModal,
 }: PropsWithChildren<BottomSheetModalProps>) {
-  const snapPoints = ["10%", "20%", "38%", "50%", "75%", "90%"];
+  const snapPoints = ["10%", "20%", "38%", "50%", "75%", "90%", "95%"];
 
   const renderBackdrop = useCallback(
     (props: any) => (

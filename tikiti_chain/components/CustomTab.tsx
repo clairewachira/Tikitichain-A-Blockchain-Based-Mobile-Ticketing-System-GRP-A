@@ -1,12 +1,15 @@
-import { View } from "react-native";
+import { Dimensions, useWindowDimensions, View } from "react-native";
 import { PlatformPressable } from "@react-navigation/elements";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { colors } from "@/constants/colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useIsKeyboardShown } from "@/hooks/general/keyboard";
+import { cn } from "@/utils/cn";
 
 const HIDDEN_ROUTES = ["+not-found", "_sitemap"];
+
+const { width } = Dimensions.get("window");
 
 function CustomTab({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
@@ -55,9 +58,11 @@ function CustomTab({ state, descriptors, navigation }: BottomTabBarProps) {
 
             return (
               <PlatformPressable
-                className={`w-[56px] rounded-full ${
-                  isFocused ? "bg-primary-white" : ""
-                }  h-[56px] items-center justify-center gap-1`}
+                className={cn(
+                  `p-4 rounded-full ${
+                    isFocused ? "bg-primary-white" : ""
+                  }  items-center justify-center gap-1`,
+                )}
                 key={route.key}
                 onPress={onPress}
                 onLongPress={onLongPress}
@@ -68,6 +73,7 @@ function CustomTab({ state, descriptors, navigation }: BottomTabBarProps) {
                     name="checkbox-blank-circle"
                     size={4}
                     color={colors.primary.black}
+                    className="absolute bottom-2"
                   />
                 )}
               </PlatformPressable>

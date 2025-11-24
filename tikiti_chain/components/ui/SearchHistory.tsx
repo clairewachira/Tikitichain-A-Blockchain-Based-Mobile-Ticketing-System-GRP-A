@@ -1,7 +1,7 @@
 import React, { Dispatch, SetStateAction } from "react";
 import { View, TouchableOpacity, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { FlatList } from "react-native-gesture-handler";
+import { FlashList } from "@shopify/flash-list";
 import { Text } from "./Text";
 import ContainerIcon from "./ContainerIcon";
 import { colors } from "@/constants/colors";
@@ -23,7 +23,7 @@ export default function SearchHistory({
 }: SearchHistoryProps) {
   return (
     <View className="bg-primary-light_gray rounded-xl p-3">
-      <FlatList
+      <FlashList
         data={searchHistory}
         keyExtractor={(_, index) => index.toString()}
         renderItem={({ item }) => (

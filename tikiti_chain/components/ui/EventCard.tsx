@@ -1,29 +1,48 @@
 import { colors } from "@/constants/colors";
 import { useSafeRouter } from "@/hooks/navigation/router";
-import { hexToRgba } from "@/utils/functions";
+import { formatTime, hexToRgba } from "@/utils/functions";
 import { LinearGradient } from "expo-linear-gradient";
 import { Image, TouchableOpacity, View } from "react-native";
 import { Text } from "./Text";
 import { cn } from "@/utils/cn";
 import ContainerIcon from "./ContainerIcon";
+import { Event } from "@/types/event";
+import { useToggleInteraction, useUserInteractions } from "@/hooks/interactions/useInteractions";
 
 type EventCardProps = {
   className: string;
   imageClassName?: string;
   imageHeight: number;
   type?: "description" | "location";
+  event: Event;
+  showInteractions?: boolean;
 };
 export default function EventCard({
   className,
   imageClassName,
   imageHeight,
   type = "location",
+  event,
+  showInteractions = true,
 }: EventCardProps) {
   const router = useSafeRouter();
+  const { data: userInteractions = [] } = useUserInteractions(event?.id);
+  const toggleInteraction = useToggleInteraction();
+
+  const isLiked = userInteractions.includes("like");
+  const isFavorited = userInteractions.includes("favorite");
+
+  const handleInteraction = (e: any, interactionType: "like" | "favorite") => {
+    e.stopPropagation();
+    toggleInteraction.mutate({ eventId: event.id, interactionType });
+  };
+
   return (
     <TouchableOpacity
       className={className}
-      onPress={() => router.push("/events/event")}
+      onPress={() =>
+        router.push({ pathname: "/events/event", params: { id: event?.id } })
+      }
     >
       <LinearGradient
         colors={[colors.primary.black, hexToRgba(colors.primary.black, 0.1)]}
@@ -37,25 +56,51 @@ export default function EventCard({
         }}
         start={{ x: 0.5, y: 1 }}
         end={{ x: 0.5, y: 0 }}
-        className="bg-black/50 w-full rounded-2xl"
+        className="bg-black/30 w-full rounded-2xl"
       >
-        <View className="flex-row gap-6">
-          <Text
-            variant="interExtraBold"
-            className="rounded-full px-2 py-1 bg-white text-xs text-black"
-          >
-            Dec, 7
-          </Text>
-          <Text
-            variant="interExtraBold"
-            className="rounded-full px-2 py-1 bg-white text-xs text-black"
-          >
-            0.02 BTC
-          </Text>
+        <View className="flex-row justify-between items-start">
+          <View className="flex-row gap-2">
+            <Text
+              variant="interExtraBold"
+              className="rounded-full px-2 py-1 bg-white text-xs text-black"
+            >
+              {event?.time ? formatTime(event?.time) : ""}
+            </Text>
+            <Text
+              variant="interExtraBold"
+              className="rounded-full px-2 py-1 bg-white text-xs text-black"
+            >
+              {event?.price} POL
+            </Text>
+          </View>
+          {showInteractions && (
+            <View className="flex-row gap-2">
+              <TouchableOpacity onPress={(e) => handleInteraction(e, "like")}>
+                <ContainerIcon
+                  icon={isLiked ? "heart" : "heart-outline"}
+                  iconType="Ionicons"
+                  iconSize={20}
+                  iconColor={isLiked ? colors.secondary.red : colors.primary.white}
+                  className="p-1.5 bg-black/50"
+                  interactive={false}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={(e) => handleInteraction(e, "favorite")}>
+                <ContainerIcon
+                  icon={isFavorited ? "bookmark" : "bookmark-outline"}
+                  iconType="Ionicons"
+                  iconSize={20}
+                  iconColor={colors.primary.white}
+                  className="p-1.5 bg-black/50"
+                  interactive={false}
+                />
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
         <View className="gap-2">
           <Text variant="subheading" className="text-2xl text-primary-gray">
-            Hanya Yanagihara book presentation
+            {event?.title}
           </Text>
           {type === "description" ? (
             <Text
@@ -63,14 +108,7 @@ export default function EventCard({
               className="text-primary-gray"
               numberOfLines={3}
             >
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. In ligula
-              lorem, ultrices id mauris quis, consectetur egestas massa. Nunc at
-              tempus risus, ut faucibus nunc. Ut condimentum turpis et viverra
-              lacinia. In ipsum ante, convallis vel purus eu, sagittis maximus
-              mauris. Fusce ultricies, risus et feugiat feugiat, neque neque
-              fermentum lorem, ac dignissim nunc odio quis risus. Aenean
-              fermentum molestie velit eget venenatis. Duis ac velit enim.
-              Maecenas et pellentesque sapien.
+              {event?.description}
             </Text>
           ) : (
             <View className="flex-row items-center gap-2">
@@ -82,7 +120,7 @@ export default function EventCard({
                 interactive={false}
               />
               <Text variant="caption" className="text-primary-gray">
-                Nairobi, Kenya
+                {event?.location?.city}, {event?.location?.country}
               </Text>
             </View>
           )}
@@ -90,7 +128,9 @@ export default function EventCard({
       </LinearGradient>
       <Image
         source={{
-          uri: "https://images.pexels.com/photos/976866/pexels-photo-976866.jpeg?cs=srgb&dl=pexels-joshsorenson-976866.jpg&fm=jpg",
+          uri:
+            event?.gallery?.[0] ??
+            "https://images.pexels.com/photos/976866/pexels-photo-976866.jpeg?cs=srgb&dl=pexels-joshsorenson-976866.jpg&fm=jpg",
         }}
         className={cn("rounded-2xl w-full", imageClassName)}
         height={imageHeight}
