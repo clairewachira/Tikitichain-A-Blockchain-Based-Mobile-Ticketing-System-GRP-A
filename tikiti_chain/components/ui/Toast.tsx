@@ -1,11 +1,11 @@
 import React from "react";
 import { TouchableOpacity, View } from "react-native";
-import Toast, { BaseToastProps } from "react-native-toast-message";
+import { Toast } from "toastify-react-native";
 import ContainerIcon from "./ContainerIcon";
 import { colors } from "@/constants/colors";
 import { Text } from "./Text";
 
-interface CustomToastProps extends BaseToastProps {
+interface CustomToastProps {
   text1?: string;
   text2?: string;
   onPress?: () => void;
@@ -88,7 +88,7 @@ const toastConfig = {
       />
     </TouchableOpacity>
   ),
-  warning: ({ text1, text2, onPress }: CustomToastProps) => (
+  warn: ({ text1, text2, onPress }: CustomToastProps) => (
     <TouchableOpacity
       className="flex-row gap-4 bg-yellow-50 border border-secondary-yellow p-4 rounded-xl w-[80%]"
       onPress={onPress}
@@ -121,6 +121,44 @@ const toastConfig = {
         icon="close"
         className="absolute top-0 right-0 m-4"
         iconColor={colors.secondary.purple}
+        iconSize={20}
+        handleClick={Toast.hide}
+      />
+    </TouchableOpacity>
+  ),
+  info: ({ text1, text2, onPress }: CustomToastProps) => (
+    <TouchableOpacity
+      className="flex-row gap-4 bg-blue-50 border border-secondary-yellow p-4 rounded-xl w-[80%]"
+      onPress={onPress}
+    >
+      <ContainerIcon
+        iconType="Ionicons"
+        icon="information-circle"
+        className="h-6 w-6 rounded-md bg-secondary-blue"
+        iconColor={colors.primary.white}
+        iconSize={12}
+        interactive={false}
+      />
+      <View className="gap-2 flex-1">
+        {text1 && (
+          <Text variant="interSemiBold" className="text-wrap">
+            {text1}
+          </Text>
+        )}
+        {text2 && (
+          <Text
+            variant="interSemiBold"
+            className="text-xs flex-shrink text-wrap"
+          >
+            {text2}
+          </Text>
+        )}
+      </View>
+      <ContainerIcon
+        iconType="MaterialIcons"
+        icon="close"
+        className="absolute top-0 right-0 m-4"
+        iconColor={colors.secondary.blue}
         iconSize={20}
         handleClick={Toast.hide}
       />
