@@ -1,0 +1,7 @@
+{
+  "network": "hardhat",
+  "chainId": 1337,
+  "contractAddress": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+  "deployedAt": "2025-11-10T06:53:46.524Z",
+  "contractName": "TikitiChainTicket"
+}
