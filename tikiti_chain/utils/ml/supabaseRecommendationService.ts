@@ -110,15 +110,44 @@ export class SupabaseRecommendationService {
 
   // Update user preferences
   async updateUserPreferences(userId: string, preferences: Partial<UserPreferences>): Promise<UserPreferences> {
-    const { data, error } = await supabase
+    // First check if preferences exist
+    const { data: existing } = await supabase
       .from('user_preferences')
-      .upsert({
-        user_id: userId,
-        ...preferences,
-        updated_at: new Date().toISOString()
-      })
-      .select()
+      .select('*')
+      .eq('user_id', userId)
       .single();
+
+    let data, error;
+
+    if (existing) {
+      // Update existing preferences
+      const result = await supabase
+        .from('user_preferences')
+        .update({
+          ...preferences,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', userId)
+        .select()
+        .single();
+
+      data = result.data;
+      error = result.error;
+    } else {
+      // Insert new preferences
+      const result = await supabase
+        .from('user_preferences')
+        .insert({
+          user_id: userId,
+          ...preferences,
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      data = result.data;
+      error = result.error;
+    }
 
     if (error) {
       throw new Error(`Failed to update user preferences: ${error.message}`);
@@ -256,7 +285,7 @@ export class SupabaseRecommendationService {
     const user = users.find(u => u.id === userId);
     const preferences = userPreferences.find(p => p.user_id === userId);
 
-    // If no events, return empty
+    // If no events at all, return empty (edge case that should never happen in production)
     if (events.length === 0) {
       return {
         recommendations: [],
@@ -389,13 +418,60 @@ export class SupabaseRecommendationService {
 
     // Sort by score and apply limit
     recommendations.sort((a, b) => b.score - a.score);
-    const limitedRecommendations = recommendations.slice(0, request.limit || 10);
+    let limitedRecommendations = recommendations.slice(0, request.limit || 10);
+
+    // NEVER return empty recommendations - always provide fallback
+    if (limitedRecommendations.length === 0) {
+      console.log('Filtered recommendations are empty, using fallback logic...');
+
+      // Check if user has preferences set
+      const hasPreferences = preferences?.category_preferences &&
+                            Object.keys(preferences.category_preferences).length > 0;
+
+      if (hasPreferences) {
+        // User has preferences - return events that match ANY of their interests
+        console.log('User has preferences, matching events to interests...');
+        const categoryPrefs = preferences!.category_preferences!;
+        const userInterests = Object.keys(categoryPrefs).filter(key => categoryPrefs[key] > 0);
+
+        const matchedEvents = events.filter(event => {
+          // Check if event matches any user interest
+          return userInterests.some(interest =>
+            event.category.toLowerCase().includes(interest.toLowerCase()) ||
+            event.tags?.some(tag => tag.toLowerCase().includes(interest.toLowerCase())) ||
+            event.title.toLowerCase().includes(interest.toLowerCase())
+          );
+        });
+
+        if (matchedEvents.length > 0) {
+          // Use matched events
+          limitedRecommendations = matchedEvents.slice(0, request.limit || 10).map(event => ({
+            event,
+            score: 4,
+            confidence: 0.7,
+            reasons: ['Matches your interests'],
+            similar_users: []
+          }));
+        } else {
+          // No exact matches, return top-rated or recent events
+          console.log('No exact matches for preferences, using top events...');
+          limitedRecommendations = this.getTopEvents(events, request.limit || 10);
+        }
+      } else {
+        // No preferences set - return random/diverse events
+        console.log('No preferences set, using random diverse events...');
+        limitedRecommendations = this.getRandomDiverseEvents(events, request.limit || 10);
+      }
+    }
 
     return {
       recommendations: limitedRecommendations,
       model_info: {
         model_type: 'fallback_heuristic',
-        parameters: {},
+        parameters: {
+          has_preferences: preferences?.category_preferences &&
+                          Object.keys(preferences.category_preferences).length > 0
+        },
         training_data_size: 0,
         accuracy: 0.6,
         last_trained: new Date().toISOString()
@@ -403,6 +479,91 @@ export class SupabaseRecommendationService {
       generated_at: new Date().toISOString(),
       request_id: `req_${Date.now()}`
     };
+  }
+
+  // Helper method to get random diverse events from different categories
+  private getRandomDiverseEvents(events: Event[], limit: number) {
+    // Group events by category
+    const eventsByCategory: Record<string, Event[]> = {};
+
+    events.forEach(event => {
+      if (!eventsByCategory[event.category]) {
+        eventsByCategory[event.category] = [];
+      }
+      eventsByCategory[event.category].push(event);
+    });
+
+    const categories = Object.keys(eventsByCategory);
+    const selectedEvents: Event[] = [];
+    let categoryIndex = 0;
+
+    // Round-robin selection from different categories for diversity
+    while (selectedEvents.length < limit && selectedEvents.length < events.length) {
+      const category = categories[categoryIndex % categories.length];
+      const categoryEvents = eventsByCategory[category];
+
+      if (categoryEvents.length > 0) {
+        // Pick a random event from this category
+        const randomIndex = Math.floor(Math.random() * categoryEvents.length);
+        const event = categoryEvents[randomIndex];
+
+        // Remove selected event to avoid duplicates
+        categoryEvents.splice(randomIndex, 1);
+        selectedEvents.push(event);
+      }
+
+      categoryIndex++;
+
+      // Safety check: if we've cycled through all categories and none have events left
+      if (categoryIndex >= categories.length * 10) {
+        break;
+      }
+    }
+
+    return selectedEvents.map(event => ({
+      event,
+      score: 3 + Math.random(), // Random score between 3-4
+      confidence: 0.5,
+      reasons: ['Popular event', 'Diverse selection'],
+      similar_users: []
+    }));
+  }
+
+  // Helper method to get top events (most recent or highest engagement)
+  private getTopEvents(events: Event[], limit: number) {
+    // Sort by upcoming time (future events first) and creation date
+    const sortedEvents = [...events].sort((a, b) => {
+      // Prioritize upcoming events
+      if (a.time && b.time) {
+        const now = new Date();
+        const aTime = new Date(a.time);
+        const bTime = new Date(b.time);
+
+        // Both in future - prefer sooner
+        if (aTime > now && bTime > now) {
+          return aTime.getTime() - bTime.getTime();
+        }
+
+        // One in future, one past - prefer future
+        if (aTime > now) return -1;
+        if (bTime > now) return 1;
+      }
+
+      // Fallback to created_at
+      if (a.created_at && b.created_at) {
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+
+      return 0;
+    });
+
+    return sortedEvents.slice(0, limit).map(event => ({
+      event,
+      score: 3.5,
+      confidence: 0.6,
+      reasons: ['Popular event in your area', 'Coming up soon'],
+      similar_users: []
+    }));
   }
 
   // Helper method to calculate distance between two points

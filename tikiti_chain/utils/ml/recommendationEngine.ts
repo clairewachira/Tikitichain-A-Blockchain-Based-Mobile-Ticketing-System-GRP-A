@@ -467,7 +467,36 @@ export class RecommendationEngine {
 
     // Sort by score and limit results
     recommendations.sort((a, b) => b.score - a.score);
-    const limitedRecommendations = recommendations.slice(0, request.limit || 10);
+    let limitedRecommendations = recommendations.slice(0, request.limit || 10);
+
+    // NEVER return empty - if ML model produced no results, use simple fallback
+    if (limitedRecommendations.length === 0) {
+      console.log('ML model produced no recommendations, using fallback...');
+
+      // Get all events that weren't filtered out
+      const candidateEvents = events.filter(event => {
+        if (userInteractedEvents.has(event.id)) return false;
+        if (request.categories && !request.categories.includes(event.category)) return false;
+        if (request.price_range && (event.price < request.price_range[0] || event.price > request.price_range[1])) return false;
+        if (request.location) {
+          const distance = this.calculateDistance(
+            { latitude: request.location.latitude, longitude: request.location.longitude },
+            event.location
+          );
+          if (distance > request.location.radius_km) return false;
+        }
+        return true;
+      });
+
+      // Return candidate events with neutral scores
+      limitedRecommendations = candidateEvents.slice(0, request.limit || 10).map(event => ({
+        event,
+        score: 3,
+        confidence: 0.5,
+        reasons: ['Based on your preferences', 'Popular event'],
+        similar_users: []
+      }));
+    }
 
     return {
       recommendations: limitedRecommendations,
