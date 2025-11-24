@@ -3,22 +3,35 @@
     "name": "Tikiti Chain",
     "slug": "tikiti_chain",
     "version": "1.0.0",
+    "jsEngine": "hermes",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "tikitichain",
     "userInterfaceStyle": "automatic",
-    "jsEngine": "hermes",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.jerrylegend.tikiti-chain",
+      "config": {
+        "googleMapsApiKey": "GOOGLE_MAPS_API_KEY"
+      },
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app uses the camera to scan QR codes on tickets for verification."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "config": {
+        "googleMaps": {
+          "apiKey": "GOOGLE_MAPS_API_KEY"
+        }
+      },
       "edgeToEdgeEnabled": true,
-      "package": "com.jerrylegend.tikiti_chain"
+      "package": "com.jerrylegend.tikiti_chain",
+      "permissions": ["CAMERA"]
     },
     "web": {
       "bundler": "metro",
@@ -36,10 +49,23 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera to scan QR codes on tickets.",
+          "microphonePermission": false
+        }
+      ]
     ],
     "experiments": {
-      "typedRoutes": false
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "e4aed7bd-172d-43ee-8da3-763da847bacf"
+      }
     }
   }
 }

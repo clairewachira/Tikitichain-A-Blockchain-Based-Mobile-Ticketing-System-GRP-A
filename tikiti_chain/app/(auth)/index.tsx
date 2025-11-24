@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "@/components/ui/Text";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { colors } from "@/constants/colors";
-import Toast from "react-native-toast-message";
+import { Toast } from "toastify-react-native";
 
 export default function Index() {
   const router = useSafeRouter();
@@ -63,7 +63,7 @@ export default function Index() {
             name="Continue with Apple"
             onPress={() =>
               Toast.show({
-                type: "warning",
+                type: "warn",
                 text1: "Currently Unavailable!",
                 text2: "Coming Soon!",
               })
@@ -72,25 +72,6 @@ export default function Index() {
             className="py-4 gap-6 border-2 border-black rounded-full"
           />
         )}
-        <Button
-          leading={
-            <Ionicons
-              name="logo-google"
-              size={24}
-              color={colors.primary.black}
-            />
-          }
-          name="Continue with Google"
-          onPress={() =>
-            Toast.show({
-              type: "warning",
-              text1: "Currently Unavailable!",
-              text2: "Coming Soon!",
-            })
-          }
-          textClassName="text-black text-lg font-interBold"
-          className="py-4 gap-6 border-2 border-black rounded-full"
-        />
       </View>
       <View className="px-6 pb-6 pt-4">
         <View className="flex-row items-center justify-center mt-4">

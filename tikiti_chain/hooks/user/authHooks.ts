@@ -1,6 +1,6 @@
 import { useUserState } from "@/store/userState";
 import { useMutation } from "@tanstack/react-query";
-import Toast from "react-native-toast-message";
+import { Toast } from "toastify-react-native";
 import { useSafeRouter } from "../navigation/router";
 
 export const useLogout = () => {
@@ -32,18 +32,33 @@ export const useSignUpWithEmail = () => {
       });
     },
     onSuccess(data) {
-      if (!data.session) {
-        Toast.show({
-          type: "warning",
-          text1: "Please check your inbox for email verification!",
-        });
-      } else {
+      console.log("Signup response:", data);
+
+      // Check if session exists (email confirmation not required)
+      if (data.session) {
         Toast.show({
           type: "success",
-          text1: "Successfully signed in",
+          text1: "Account created successfully!",
+          text2: "Let's customize your experience",
         });
+        // Redirect new users to interests page to set preferences
+        router.replace("/interests");
+      } else if (data.user && !data.session) {
+        // User created but needs email verification
+        Toast.show({
+          type: "warn",
+          text1: "Please check your inbox for email verification!",
+        });
+        router.replace("/(auth)/login");
+      } else {
+        // Something went wrong
+        Toast.show({
+          type: "error",
+          text1: "Registration failed",
+          text2: "Please try again",
+        });
+        router.replace("/(auth)/login");
       }
-      router.replace("/(auth)/login");
     },
   });
   return { signUpWithEmail: mutate, isSigningUpWithEmail: isPending };

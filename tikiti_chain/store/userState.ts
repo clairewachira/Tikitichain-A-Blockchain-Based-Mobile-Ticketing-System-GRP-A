@@ -5,7 +5,7 @@ import {
   SignUpResponse,
 } from "@/types/auth";
 import { supabase } from "@/utils/supabase";
-import Toast from "react-native-toast-message";
+import { Toast } from "toastify-react-native";
 import { create } from "zustand";
 
 interface UserState {
@@ -19,9 +19,38 @@ export const useUserState = create<UserState>((set, get) => ({
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { username } },
+      options: { data: { username, full_name: username } },
     });
-    if (error) Toast.show({ type: "error", text1: error.message });
+
+    if (error) {
+      Toast.show({ type: "error", text1: error.message });
+      throw error;
+    }
+
+    // Manually insert profile if user was created successfully
+    // This ensures profile is created even if the database trigger doesn't work
+    if (data.user) {
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .insert({
+          id: data.user.id,
+          full_name: username,
+          role: "attendee",
+        });
+
+      if (profileError) {
+        console.error("Error creating profile:", profileError);
+        // Don't throw error here as the user is already created
+        // The profile might already exist from the trigger
+        if (!profileError.message.includes("duplicate key")) {
+          Toast.show({
+            type: "warn",
+            text1: "Account created but profile setup incomplete",
+          });
+        }
+      }
+    }
+
     return data;
   },
 
