@@ -239,16 +239,16 @@ bun install
 ## 🗺️ Roadmap
 
 ### Phase 1: MVP (Q4 2024) ✅
-- [ ] Core ticketing functionality
-- [ ] Basic NFT minting
-- [ ] Mobile and web interfaces
-- [ ] Smart contract deployment (Testnet)
+- [x] Core ticketing functionality
+- [x] Basic NFT minting
+- [x] Mobile and web interfaces
+- [x] Smart contract deployment (Testnet)
 
 ### Phase 2: Enhanced Features (Q1 2025) 🚧
-- [ ] Secondary marketplace
+- [x] Secondary marketplace
 - [ ] Fiat payment integration
-- [ ] Advanced analytics dashboard
-- [ ] Social features and sharing
+- [x] Advanced analytics dashboard
+- [x] Social features and sharing
 - [ ] Multi-language support
 
 ### Phase 3: Scale & Optimize (Q2 2025) 📋
